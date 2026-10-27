@@ -2,58 +2,82 @@
 
 ## Project Description
 
-This portfolio is about graphical user interfaces and databases, focusing on JavaFX, relational database modelling, SQL and JDBC.
+A JavaFX desktop application where students sign up for project activities and create or join project groups. Data is stored in SQLite through JDBC. This is an independent implementation for the second of three Software Development portfolios at Roskilde University.
 
-It is the second of three parts to be submitted for the exam as a mini-project. This repository is a new, independent implementation without code reused from Portfolio 1.
+## Implemented Features
 
-## Assignment Description
+- Load students and project activities from the database into combo boxes.
+- Sign up a student for an activity, with feedback for existing signups.
+- Create a project group with a title, supervisor and the selected student as its first member.
+- List existing groups for the selected activity and join a selected group.
+- Query a student's group for a specific activity, returning zero or one row.
 
-Develop an application where students can sign up for project activities in a bachelor's programme and create or join project groups.
+The interface is constructed in Java without FXML. Generated FXML/controller files may remain from the IntelliJ template, but the application interface does not load them.
 
-The assignment consists of the following parts:
+## Domain Rules
 
-1. Construct a JavaFX interface without FXML for activity signups and creating or joining project groups.
-2. Model the domain with an E/R diagram showing cardinalities, primary keys, foreign keys and key types.
-3. Create database tables and insert sample data, enabling foreign key checks with `PRAGMA foreign_keys = ON;`.
-4. Create a query that finds the project group a student has joined for a specific project activity, returning zero or one result.
-5. Implement a JDBC backend that fetches project activities from the database and stores project group information, keeping GUI operations separate from database interaction.
+- Students may sign up for multiple activities.
+- A student may belong to at most one group per activity.
+- Group members must be signed up for the group's activity.
+- Each group belongs to one activity and has a unique project title and a supervisor.
+- Creating a group also creates its initial membership in the same transaction.
+- Student names and activity names are unique in this simplified assignment model.
 
-## Project Activities and Groups
+## Database and SQL Files
 
-Students sign up for a project activity before creating or joining a group for that activity.
+- [Tables.sql](Tables.sql): creates the five tables and their constraints.
+- [Sample.sql](Sample.sql): inserts the fixed example dataset.
+- [Queries.sql](Queries.sql): joins membership and group data for a selected student and activity.
 
-- A student can sign up for multiple project activities.
-- A student can belong to at most one group per project activity.
-- Every group member must be signed up for the group's activity.
-- Each group belongs to one project activity and has a project title and a supervisor.
-- The student who creates a group becomes its initial member.
+The tables are Student, ProjectActivity, ActivitySignup, ProjectGroup and GroupMembership. ActivitySignup and GroupMembership use the composite primary key (student_id, activity_id). Composite foreign keys enforce signup and matching group/activity references. ProjectGroup declares UNIQUE(group_id, activity_id) to support the membership reference.
 
-The assignment assumes that student names, study activity names and project titles are distinct.
+To recreate the database, use an empty SQLite file and run Tables.sql, then the complete Sample.sql script on the same connection. Enable foreign keys before starting the sample-data transaction. Do not rerun these creation/insertion scripts against an already populated database. Stop and roll back on an insertion error.
 
-## Planned Database Model
+## Code Structure
 
-- `Student`: student identifiers and names.
-- `ProjectActivity`: project activity identifiers and names.
-- `ActivitySignup`: student signups for project activities.
-- `ProjectGroup`: group identifiers, project titles, supervisors and associated activities.
-- `GroupMembership`: student group memberships for individual activities.
+The Maven application is in [application](application/).
 
-`ActivitySignup` and `GroupMembership` use `(student_id, activity_id)` as a composite primary key. The planned foreign keys ensure that group members are signed up for the activity and that their group belongs to the same activity.
+- Launcher starts JavaFX; HelloApplication builds the interface and handles user actions.
+- Database opens connections and enables PRAGMA foreign_keys = ON on each connection.
+- Student, ProjectActivity and ProjectGroup represent domain data.
+- StudentRepo and ProjectActivityRepo read selection data.
+- ActivitySignupRepo saves signups.
+- ProjectGroupRepo creates groups, retrieves groups by activity and saves memberships.
+- DatabaseTest is a console connection/query check.
+
+SQL is kept in repository classes, separate from the JavaFX interface. Parameterized writes use PreparedStatement, and try-with-resources closes JDBC resources. Group creation commits the group and first membership together, or rolls both back on failure.
 
 ## Technologies
 
-- Java
-- JavaFX without FXML
-- SQLite
-- JDBC
+- JDK 26
+- JavaFX 26.0.2
+- SQLite and Xerial SQLite JDBC 3.53.4.0
+- Maven / Maven Wrapper
 
-## Project Status
+## Running and Repository Setup
 
-The project is in the design stage. The E/R diagram has been drafted; the application and database implementation are the next steps.
+Open application/pom.xml as a Maven project in IntelliJ and select JDK 26. Synchronize Maven to download the JavaFX dependencies.
+
+The GitHub checkout and the separately prepared submission ZIP are not yet identical: the submission copy has a relative database path and a Maven SQLite JDBC dependency. These packaging changes must not be assumed to exist in this checkout.
+
+For the current checkout:
+
+1. Ensure the SQLite JDBC driver is available to the application module. If it is not declared in pom.xml, manually add sqlite-jdbc-3.53.4.0.jar through Project Structure > Modules > Dependencies, following the course method.
+2. Create a database using Tables.sql and Sample.sql, or use your existing database.
+3. Check DATABASE_FILE in Database.java and point it to that database. A personal absolute path must be adjusted on another computer. If using Path.of("verification.sqlite"), place the file in the application working directory.
+4. Run ruc.portfolio2.application.Launcher with application as the working directory and these VM options:
+
+    --enable-native-access=javafx.graphics,org.xerial.sqlitejdbc
+
+Database files are not tracked in this repository. The submission ZIP includes its database and RUNNING.md setup instructions. The manual JAR file alone is not sufficient unless it is added to the project's dependencies.
+
+## Verification Performed
+
+During development, the application was exercised for new and repeated signups, group creation, joining with and without activity signup, and rejection of additional memberships. A failed group-creation transaction was checked for an unwanted leftover group. SQL checks covered example row counts, foreign-key integrity, and both populated and empty group-query results. These are manual development checks, not a claim of an automated test suite or CI build.
 
 ## Submission
 
-The submission consists of a PDF with short explanations, an E/R diagram and screenshots of the running application, together with a ZIP file containing the source code. SQL table creation commands and the required query must be included in either the PDF or the ZIP file. The PDF should include group members' email addresses.
+The assignment is submitted as a PDF with short implementation descriptions, an E/R diagram, screenshots of program runs and member email addresses, plus a ZIP containing source code and SQL scripts. The PDF and packaged ZIP are separate deliverables; GitHub does not replace the required submission.
 
 ## Assignment Source
 
