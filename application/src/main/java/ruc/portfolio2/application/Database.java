@@ -9,9 +9,8 @@ import java.sql.Statement;
 
 public class Database {
 
-    private static final Path DATABASE_FILE = Path.of(
-            "C:/Users/abdur/IdeaProjects/Porfolio-2/identifier.sqlite"
-    );
+    private static final Path DATABASE_FILE =
+            Path.of("verification.sqlite").toAbsolutePath().normalize();
 
     public static Connection connect() throws SQLException {
         if (!Files.isRegularFile(DATABASE_FILE)) {
