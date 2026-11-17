@@ -2,84 +2,73 @@
 
 ## Project Description
 
-A JavaFX desktop application where students sign up for project activities and create or join project groups. Data is stored in SQLite through JDBC. This is an independent implementation for the second of three Software Development portfolios at Roskilde University.
+This portfolio is about graphical user interfaces and databases.
 
-## Implemented Features
+It is the second of three parts that should be submitted for the exam as a mini-project.
 
-- Load students and project activities from the database into combo boxes.
-- Sign up a student for an activity, with feedback for existing signups.
-- Create a project group with a title, supervisor and the selected student as its first member.
-- List existing groups for the selected activity and join a selected group.
-- Query a student's group for a specific activity, returning zero or one row.
+## Assignment Description
 
-The interface is constructed in Java without FXML. Generated FXML/controller files may remain from the IntelliJ template, but the application interface does not load them.
+Implement an application for students to sign up for project activities in a bachelor's programme.
+
+The assignment consists of the following parts:
+
+1. Construct a JavaFX program where students can select project activities and form or join project groups.
+2. Model the domain with an E/R diagram.
+3. Create tables and insert some sample data into the tables.
+4. Create a query that lists the project group a student has joined for a project activity.
+5. Create a backend (model) for the GUI program so that project activities are fetched from the database and project groups are stored in the database.
 
 ## Domain Rules
 
-- Students may sign up for multiple activities.
-- A student may belong to at most one group per activity.
-- Group members must be signed up for the group's activity.
-- Each group belongs to one activity and has a unique project title and a supervisor.
-- Creating a group also creates its initial membership in the same transaction.
-- Student names and activity names are unique in this simplified assignment model.
+- Students sign up for project activities before forming project groups.
+- A project group has a title, a supervisor and belongs to one project activity.
+- A student can be in at most one project group for each project activity.
+- All students in a group must be signed up for that activity.
+- Student names, activity names and project titles are unique.
 
-## Database and SQL Files
+## Features
 
-- [Tables.sql](Tables.sql): creates the five tables and their constraints.
-- [Sample.sql](Sample.sql): inserts the fixed example dataset.
-- [Queries.sql](Queries.sql): joins membership and group data for a selected student and activity.
+- Select a student and a project activity, and sign up.
+- Create a new project group with the selected student as its first member.
+- Choose an existing group for the selected activity and join it.
+- Feedback messages for successful and rejected actions.
 
-The tables are Student, ProjectActivity, ActivitySignup, ProjectGroup and GroupMembership. ActivitySignup and GroupMembership use the composite primary key (student_id, activity_id). Composite foreign keys enforce signup and matching group/activity references. ProjectGroup declares UNIQUE(group_id, activity_id) to support the membership reference.
-
-To recreate the database, use an empty SQLite file and run Tables.sql, then the complete Sample.sql script on the same connection. Enable foreign keys before starting the sample-data transaction. Do not rerun these creation/insertion scripts against an already populated database. Stop and roll back on an insertion error.
+The interface is built in Java without FXML.
 
 ## Code Structure
 
-The Maven application is in [application](application/).
+The program follows the Model-View-Controller pattern from the lectures:
 
-- Launcher starts JavaFX; HelloApplication builds the interface and handles user actions.
-- Database opens connections and enables PRAGMA foreign_keys = ON on each connection.
-- Student, ProjectActivity and ProjectGroup represent domain data.
-- StudentRepo and ProjectActivityRepo read selection data.
-- ActivitySignupRepo saves signups.
-- ProjectGroupRepo creates groups, retrieves groups by activity and saves memberships.
-- DatabaseTest is a console connection/query check.
+- `Launcher` - starts the program.
+- `View` - creates the window and its components, and shows what it is told.
+- `Controller` - handles user actions and connects the view and the model.
+- `Model` - all SQL for reading and saving students, activities, signups and groups.
+- `MyDB` - the database connection class from the course Moodle page.
 
-SQL is kept in repository classes, separate from the JavaFX interface. Parameterized writes use PreparedStatement, and try-with-resources closes JDBC resources. Group creation commits the group and first membership together, or rolls both back on failure.
+Foreign key checks are enabled with `PRAGMA foreign_keys = ON;` when the model is created.
+
+## Database
+
+The database has five tables: `Student`, `ProjectActivity`, `ActivitySignup`, `ProjectGroup` and `GroupMembership`.
+
+- `Tables.sql` - creates the tables and constraints.
+- `Sample.sql` - inserts sample data.
+- `Queries.sql` - the query that finds a student's group for a project activity.
+
+## How to Run
+
+1. Open the `application` folder in IntelliJ as a Maven project, and let Maven download JavaFX and the SQLite JDBC driver.
+2. Create the database file `identifier.sqlite` in the `application` folder by running `Tables.sql` and then `Sample.sql`.
+3. Run `Launcher`.
 
 ## Technologies
 
-- JDK 26
+- Java (JDK 26)
 - JavaFX 26.0.2
-- SQLite and Xerial SQLite JDBC 3.53.4.0
-- Maven / Maven Wrapper
-
-## Running and Repository Setup
-
-Open application/pom.xml as a Maven project in IntelliJ and select JDK 26. Synchronize Maven to download the JavaFX dependencies.
-
-The GitHub checkout and the separately prepared submission ZIP are not yet identical: the submission copy has a relative database path and a Maven SQLite JDBC dependency. These packaging changes must not be assumed to exist in this checkout.
-
-For the current checkout:
-
-1. Ensure the SQLite JDBC driver is available to the application module. If it is not declared in pom.xml, manually add sqlite-jdbc-3.53.4.0.jar through Project Structure > Modules > Dependencies, following the course method.
-2. Create a database using Tables.sql and Sample.sql, or use your existing database.
-3. Check DATABASE_FILE in Database.java and point it to that database. A personal absolute path must be adjusted on another computer. If using Path.of("verification.sqlite"), place the file in the application working directory.
-4. Run ruc.portfolio2.application.Launcher with application as the working directory and these VM options:
-
-    --enable-native-access=javafx.graphics,org.xerial.sqlitejdbc
-
-Database files are not tracked in this repository. The submission ZIP includes its database and RUNNING.md setup instructions. The manual JAR file alone is not sufficient unless it is added to the project's dependencies.
-
-## Verification Performed
-
-During development, the application was exercised for new and repeated signups, group creation, joining with and without activity signup, and rejection of additional memberships. A failed group-creation transaction was checked for an unwanted leftover group. SQL checks covered example row counts, foreign-key integrity, and both populated and empty group-query results. These are manual development checks, not a claim of an automated test suite or CI build.
-
-## Submission
-
-The assignment is submitted as a PDF with short implementation descriptions, an E/R diagram, screenshots of program runs and member email addresses, plus a ZIP containing source code and SQL scripts. The PDF and packaged ZIP are separate deliverables; GitHub does not replace the required submission.
+- SQLite with the Xerial SQLite JDBC driver 3.53.4.0
+- Maven
 
 ## Assignment Source
 
-Mads Rosendahl  
+Mads Rosendahl
 Software Development / RUC / Datalogi - Autumn 2026
